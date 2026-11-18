@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cumpleaños</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #130f26;
+            color: #1e1b4b;
+            min-height: 100vh;
+            line-height: 1.6;
+            transition: background-color 0.8s ease;
+        }
+
+        body.light-theme {
+            background-color: #ede9fe;
+            background-image: 
+                url('uwu/flores-background.jfif'), 
+                linear-gradient(180deg, #f5f3ff 0%, #ede9fe 50%, #ddd6fe 100%);
+            background-repeat: no-repeat, no-repeat;
+            background-position: center top, center center;
+            background-size: 100% 100%, cover;
+            background-attachment: fixed, fixed;
+        }
+        
+
+        .hidden {
+            display: none !important;
+        }
+
+        /* FASE 1: TERMINAL */
+        #terminal-screen {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 24px;
+        }
+
+        #terminal-screen header,
+        #terminal-screen #terminal-output,
+        #terminal-screen #action-area {
+            width: 100%;
+            max-width: 700px;
+            background-color: #1c1638;
+            border-left: 1px solid #3b2d71;
+            border-right: 1px solid #3b2d71;
+            font-family: 'Courier New', Courier, monospace;
+        }
+
+        #terminal-screen header {
+            background-color: #261e4d;
+            border-top: 1px solid #3b2d71;
+            border-radius: 12px 12px 0 0;
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        #terminal-screen header span {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+
+        #terminal-screen header span:nth-child(1) { background-color: #ff5f56; }
+        #terminal-screen header span:nth-child(2) { background-color: #ffbd2e; }
+        #terminal-screen header span:nth-child(3) { background-color: #27c93f; }
+
+        #terminal-screen header h1 {
+            font-size: 0.95rem;
+            font-weight: normal;
+            color: #c4b5fd;
+            margin-left: 8px;
+        }
+
+        #terminal-output {
+            padding: 22px;
+            min-height: 220px;
+            color: #d8b4fe;
+            font-size: 0.95rem;
+            border-bottom: 1px solid #3b2d71;
+            border-radius: 0 0 12px 12px;
+        }
+
+        #terminal-output.has-action {
+            border-bottom: none;
+            border-radius: 0;
+        }
+
+        #terminal-output p {
+            margin-bottom: 10px;
+        }
+
+        #action-area {
+            border-bottom: 1px solid #3b2d71;
+            border-radius: 0 0 12px 12px;
+            padding: 16px 20px 22px 20px;
+            display: flex;
+            justify-content: flex-end;
+        }
+
+        #unlock-btn {
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 0.95rem;
+            font-weight: bold;
+            padding: 11px 20px;
+            border-radius: 8px;
+            border: 1px solid #a855f7;
+            background-color: rgba(168, 85, 247, 0.15);
+            color: #e9d5ff;
+            cursor: pointer;
+            transition: all 0.25s ease;
+        }
+
+        #unlock-btn:hover {
+            background-color: #9333ea;
+            color: #ffffff;
+            box-shadow: 0 0 18px rgba(168, 85, 247, 0.6);
+        }
+
+        /* FASE 2: TARJETA Y LÍNEA DE TIEMPO */
+        #birthday-screen {
+            position: relative;
+            max-width: 1200px; /* Al hacerlo un poco más ancho, se aprovecha más la pantalla */
+            margin: 0 auto;
+            padding: 45px 80px 80px 80px; /* Más espacio a la izquierda y derecha para que respiren las flores */
+            animation: fadeIn 0.8s ease forwards;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(15px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        #confetti-canvas {
+            position: fixed;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        #birthday-screen > article {
+            position: relative;
+            z-index: 2;
+            background: rgba(255, 255, 255, 0.88);
+            border: 1px solid #d8b4fe;
+            border-radius: 20px;
+            padding: 38px 30px;
+            text-align: center;
+            margin-bottom: 44px;
+            box-shadow: 0 12px 32px rgba(109, 40, 217, 0.1);
+        }
+
+        #birthday-screen > article h1 {
+            font-size: 2.3rem;
+            margin-bottom: 14px;
+            color: #2e1065;
+        }
+
+        #birthday-screen > article h1 span {
+            color: #9333ea;
+        }
+
+        #birthday-screen > article p {
+            max-width: 620px;
+            margin: 0 auto;
+            color: #4c1d95;
+            font-size: 1.06rem;
+        }
+
+        #media-section {
+            position: relative;
+            z-index: 2;
+        }
+
+        #timeline-list {
+            display: flex;
+            flex-direction: column;
+            gap: 28px;
+        }
+
+        .timeline-item {
+            display: grid;
+            grid-template-columns: 300px 1fr;
+            gap: 26px;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.85);
+            border: 1px solid #e9d5ff;
+            border-radius: 18px;
+            padding: 20px;
+            box-shadow: 0 8px 24px rgba(109, 40, 217, 0.08);
+            transition: transform 0.25s ease, box-shadow 0.25s ease;
+        }
+
+        .timeline-item:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 28px rgba(109, 40, 217, 0.14);
+        }
+
+        .timeline-item:nth-child(even) img {
+            order: 2;
+        }
+
+        .timeline-item img {
+    width: 100%;
+    height: auto;
+    max-height: 360px;
+    object-fit: contain;
+    background-color: #f3e8ff;
+    border-radius: 14px;
+    border: 2px solid #f3e8ff;
+    display: block;
+        } 
+
+        .timeline-item p {
+            color: #3b0764;
+            font-size: 1.02rem;
+            line-height: 1.7;
+        }
+
+        #video-box {
+            margin-top: 44px;
+            background: rgba(255, 255, 255, 0.88);
+            border: 1px solid #d8b4fe;
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: 0 12px 32px rgba(109, 40, 217, 0.12);
+        }
+
+        #video-box video {
+            width: 100%;
+            max-height: 480px;
+            border-radius: 14px;
+            display: block;
+            background: #130f26;
+        }
+
+        @media (max-width: 720px) {
+            .timeline-item {
+                grid-template-columns: 1fr;
+            }
+            .timeline-item:nth-child(even) img {
+                order: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- FASE 1: Terminal -->
+    <section id="terminal-screen">
+        <header>
+            <span></span><span></span><span></span>
+            <h1>root@amistad:~# ./cumpleanos.sh</h1>
+        </header>
+
+        <div id="terminal-output"></div>
+
+        <div id="action-area" class="hidden">
+            <button type="button" id="unlock-btn">[ ABRIR SORPRESA ]</button>
+        </div>
+    </section>
+
+    <!-- FASE 2: Tarjeta y línea de tiempo / recorrido -->
+    <main id="birthday-screen" class="hidden">
+        <canvas id="confetti-canvas"></canvas>
+
+        <article>
+            <h1>¡Feliz Cumpleaños, <span id="friend-name">Saomy</span>!</h1>
+            <p>
+                ¡Feliz cumpleaños, mi niña!
+            </p>
+        </article>
+
+        <section id="media-section">
+            <div id="timeline-list">
+                <div class="timeline-item">
+                    <img src="uwu/WhatsApp Image 2026-11-16 at 11.26.46 PM.jpeg" alt="">
+                    <p>Este es un día especial, el día en que nació una bella niña con unos ojitos muy bonitos. Una niña con la que, la verdad, nunca pensé interactuar, porque me parecía que eras todo lo contrario a mí y creí que eso no nos iba a dejar llevarnos bien. Qué bueno que me equivoqué.</p>
+                </div>
+
+                <div class="timeline-item">
+                    <img src="uwu/WhatsApp Image 2026-11-16 at 11.26.46 PM1.jpeg" alt="">
+                    <p>Terminaste siendo una gran compañera y una muy buena amiga. Te aprecio muchísimo y te quiero, aunque ya siento que lo digo muchas veces y a ti no te guste, pero de verdad nunca pensé que esta amistad llegara tan lejos como empezó.</p>
+                </div>
+
+                <div class="timeline-item">
+                    <img src="uwu/WhatsApp Image 2026-11-16 at 11.26.47 PM3.jpeg" alt="">
+                    <p>Recuerdo que todo empezó la primera vez que fuimos a la Comic-Con, donde comiste tu primera pizza fuera de casa y estabas apenada porque yo estaba pagándolo todo solo para ti. Aunque no lo creas, ese día fue muy bonito para mí.</p>
+                </div>
+
+                <div class="timeline-item">
+                    <img src="uwu/WhatsApp Image 2026-11-16 at 11.26.49 PM6.jpeg" alt="">
+                    <p>Después pasamos al liceo, donde quizá no tuvimos el mejor final, pero estábamos los cuatro juntos y lo celebramos de la mejor manera. Ahí tuvimos de todo: momentos de risa cuando te ponía nerviosa jugando con Leosward, momentos tristes cuando te pasó lo del examen con el profe Diego, momentos de miedo cuando Brayan quitó la foto de V, y hasta discusiones por el proyecto, que por lo menos nos salió bien y pudimos terminar. La verdad, en ese momento pensé que te ibas a alejar, pero no lo hiciste.</p>
+                </div>
+
+                <div class="timeline-item">
+                    <img src="uwu/WhatsApp Image 2026-11-16 at 11.26.48 PM5.jpeg" alt="">
+                    <p>Más bien nos volvimos más cercanos: empezamos a salir más, a hablar más de nosotros y a conocernos tan bien que a veces sabemos qué está pensando el otro. Gracias por siempre acompañarme en mis aventuras que me sacaban de cuadro, porque a mí me gustaba pasar tiempo contigo y eras la única que aceptaba salir conmigo, la verdad.</p>
+                </div>
+
+                <div class="timeline-item">
+                    <img src="uwu/WhatsApp Image 2026-11-16 at 11.26.47 PM4.jpeg" alt="">
+                    <p>Gracias de verdad, y perdón si en algún momento te hice sentir incomodidad o te forcé a decir algo que no querías decir. Para mí eres como una hermana, así te veo, y siempre trataré de estar ahí. Si no puedo estar a tu lado en el futuro, voy a estar detrás esperando que voltees y te acuerdes de mí para ir a atragantarnos de pollo de KFC, jeje.</p>
+                </div>
+            </div>
+
+            <!-- Texto centrado ANTES del video -->
+            <div class="closing-note">
+                <p>Sé que no te gusta que te lo diga, pero una última vez te lo voy a decir: te quiero, hermanita. Pásala bien en tu día especial. Ya eres una adulta legalmente; recuerda tomar buenas decisiones y, si necesitas apoyo, siempre puedes mirar hacia atrás.</p>
+            </div>
+
+            <!-- Video AL FINAL -->
+            <div id="video-box">
+                <video controls preload="metadata">
+                    <source src="uwu/video.mp4" type="video/mp4">
+                    Tu navegador no soporta este video.
+                </video>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        const nombreAmiga = "Saomy";
+        document.getElementById('friend-name').textContent = nombreAmiga;
+
+        const terminalOutput = document.getElementById('terminal-output');
+        const actionArea = document.getElementById('action-area');
+        const unlockBtn = document.getElementById('unlock-btn');
+        const terminalScreen = document.getElementById('terminal-screen');
+        const birthdayScreen = document.getElementById('birthday-screen');
+
+        // Cada línea se divide en pasos:
+        // { text: "...", pauseAfter: ms } permite pausar justo en los "..."
+        const scriptLines = [
+            [
+                { text: "> Localizando juego Genshin Impact", pauseAfter: 250 },
+                { text: "...", pauseAfter: 900 },
+                { text: " OK.", pauseAfter: 550 }
+            ],
+            [
+                { text: "> Buscando manhwa visto en línea", pauseAfter: 250 },
+                { text: "...", pauseAfter: 1000 },
+                { text: " se encontraron 87 manhwa en el historial.", pauseAfter: 600 }
+            ],
+            [
+                { text: "> Verificando fecha importante en el calendario del dispositivo", pauseAfter: 250 },
+                { text: "...", pauseAfter: 950 },
+                { text: " cumpleaños.", pauseAfter: 600 }
+            ],
+            [
+                { text: "> Feliz cumpleaños Saomy Gallones, estamos preparando una sorpresa", pauseAfter: 300 },
+                { text: "...", pauseAfter: 950 },
+                { text: " listo, dale al botón cuando estés lista.", pauseAfter: 400 }
+            ]
+        ];
+
+        let lineIdx = 0;
+        let stepIdx = 0;
+        let charIdx = 0;
+        let currentParagraph = null;
+
+        function playTerminalStep() {
+            if (lineIdx >= scriptLines.length) {
+                terminalOutput.classList.add('has-action');
+                actionArea.classList.remove('hidden');
+                return;
+            }
+
+            const currentLineSteps = scriptLines[lineIdx];
+
+            if (stepIdx === 0 && charIdx === 0) {
+                currentParagraph = document.createElement('p');
+                terminalOutput.appendChild(currentParagraph);
+            }
+
+            const currentStep = currentLineSteps[stepIdx];
+
+            if (charIdx < currentStep.text.length) {
+                currentParagraph.textContent += currentStep.text.charAt(charIdx);
+                charIdx++;
+
+                // Ritmo más lento para los puntos suspensivos; un poco más ágil en el resto
+                const isDots = currentStep.text.trim() === "...";
+                const typingSpeed = isDots ? 260 : 52;
+                setTimeout(playTerminalStep, typingSpeed);
+            } else {
+                const pause = currentStep.pauseAfter || 300;
+                stepIdx++;
+                charIdx = 0;
+
+                if (stepIdx >= currentLineSteps.length) {
+                    lineIdx++;
+                    stepIdx = 0;
+                }
+
+                setTimeout(playTerminalStep, pause);
+            }
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            setTimeout(playTerminalStep, 500);
+        });
+
+        unlockBtn.addEventListener('click', () => {
+            terminalScreen.classList.add('hidden');
+            document.body.classList.add('light-theme');
+            birthdayScreen.classList.remove('hidden');
+            window.scrollTo({ top: 0 });
+            startConfetti();
+        });
+
+        function startConfetti() {
+            const canvas = document.getElementById('confetti-canvas');
+            const ctx = canvas.getContext('2d');
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+
+            const pieces = [];
+            const colors = ['#9333ea', '#c084fc', '#f472b6', '#fbbf24', '#818cf8'];
+
+            for (let i = 0; i < 120; i++) {
+                pieces.push({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height - canvas.height,
+                    w: Math.random() * 10 + 5,
+                    h: Math.random() * 6 + 4,
+                    color: colors[Math.floor(Math.random() * colors.length)],
+                    speed: Math.random() * 2.5 + 1.5,
+                    angle: Math.random() * 360,
+                    spin: Math.random() * 0.1 - 0.05
+                });
+            }
+
+            function update() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                pieces.forEach(p => {
+                    p.y += p.speed;
+                    p.angle += p.spin;
+                    if (p.y > canvas.height) p.y = -10;
+
+                    ctx.save();
+                    ctx.translate(p.x, p.y);
+                    ctx.rotate(p.angle);
+                    ctx.fillStyle = p.color;
+                    ctx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h);
+                    ctx.restore();
+                });
+                requestAnimationFrame(update);
+            }
+            update();
+
+            window.addEventListener('resize', () => {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+            });
+        }
+    </script>
+</body>
+</html>
